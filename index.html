@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <title>Assinar Documento</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background-color: #e0e0e0;
+            height: 100vh;
+            margin: 0;
+        }
+
+        #canvas-container {
+            position: relative;
+            width: 600px;
+            height: 700px;
+            overflow: scroll;
+            border: 2px solid #000;
+            background-color: #fff;
+            margin-top: 20px;
+        }
+
+        #signature-pad {
+            width: 1200px;
+            height: 1400px;
+            touch-action: none;
+        }
+
+        form {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        input[type="date"],
+
+        textarea {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+            width: 100%;
+            box-sizing: border-box;
+
+        }
+
+        #projeto {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        #buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            gap: 10px;
+        }
+
+        button {
+            max-width: 100%;
+            padding: 10px 20px;
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        /* Estilo da barra de rolagem */
+        #canvas-container::-webkit-scrollbar {
+            width: 20px;
+            height: 20px;
+        }
+
+        #canvas-container::-webkit-scrollbar-thumb {
+            background-color: #888;
+            border-radius: 5px;
+        }
+
+        #canvas-container::-webkit-scrollbar-thumb:hover {
+            background-color: #555;
+        }
+
+         /* Responsividade para tablets de 10.1 polegadas */
+         @media (max-width: 1280px) and (max-height: 800px) {
+            #canvas-container {
+                width: 100%;
+                height: 550px; /* Ajuste da altura */
+            }
+            
+            #signature-pad {
+                width: 100%; /* Tornar o canvas responsivo */
+                height: 100%;
+            }
+
+            #canvas-container::-webkit-scrollbar {
+                width: 35px;
+                height: 35px;
+            }
+
+            #canvas-container::-webkit-scrollbar-thumb {
+                background-color: #888;
+                border-radius: 30px;
+            }
+
+            
+
+
+        }
+
+        /* Responsividade */
+        @media (max-width: 768px) {
+            #canvas-container {
+                width: 100%;
+                height: 400px;
+            }
+
+            form {
+                max-width: 100%;
+            }
+
+
+            /* Aumentar a barra de rolagem no responsivo */
+            #canvas-container::-webkit-scrollbar {
+                width: 25px;
+                height: 25px;
+            }
+
+            #canvas-container::-webkit-scrollbar-thumb {
+                background-color: #888;
+                border-radius: 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            #canvas-container {
+                width: 100%;
+                height: 350px;
+            }
+
+            form {
+                max-width: 100%;
+            }
+
+            button {
+                width: 100%;
+            }
+
+
+            /* Aumentar ainda mais a barra de rolagem para dispositivos menores */
+            #canvas-container::-webkit-scrollbar {
+                width: 35px;
+                height: 35px;
+            }
+
+            #canvas-container::-webkit-scrollbar-thumb {
+                background-color: #555;
+                border-radius: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Assine o documento</h1>
+
+    <form id="user-info">
+        <label for="fullName">Nome Completo:</label>
+        <input type="text" id="fullName" required>
+
+        <label for="project">CPF:</label>
+        <input type="text" id="project" required>
+
+        <label for="projeto">Projeto:</label>
+        <select name="projeto" id="projeto">
+            <option value="Selecione">Selecione</option>
+            <option value="ARQUIP/SP">ARQUIP/SP</option>
+            <option value="DNIT/RJ">DNIT/RJ</option>
+            <option value="SANTA CASA/PA">SANTA CASA/PA</option>
+            <option value="OPHIR LOYOLA/PA">OPHIR LOYOLA/PA</option>
+            <option value="SEDOP/PA">SEDOP/PA</option>
+            <option value="SEEL/PA">SEEL/PA</option>
+            <option value="ISEP/PA">ISEP/PA</option>
+            <option value="SEMEC/PI">SEMEC/PI</option>
+            <option value="ANAPOLIS/GO">ANÁPOLIS/GO</option>
+            <option value="SES/GO">SES/GO</option>
+            <option value="DNIT/MG">DNIT/MG</option>
+            <option value="DER/MG">DER/MG</option>
+            <option value="MINC/DF">MINC/DF</option>
+            <option value="SLU/DF">SLU/DF</option>
+        </select>
+
+        <label for="birthDate">Data da Assinatura:</label>
+        <input type="date" id="birthDate" required>
+
+
+
+
+
+        <label>
+            <input type="checkbox" id="terms" required>
+            Li e concordo com o termo.
+        </label>
+    </form>
+
+    <div id="buttons-2">
+        <button id="update">Atualizar Termo</button>
+    </div>
+
+    <div id="canvas-container">
+        <canvas id="signature-pad"></canvas>
+    </div>
+
+    <div id="buttons">
+        <button id="clear">Limpar</button>
+        <button id="submit">Enviar Assinatura</button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@2.3.2/dist/signature_pad.min.js"></script>
+    <script>
+        const canvas = document.getElementById('signature-pad');
+        const signaturePad = new SignaturePad(canvas, {
+            minWidth: 0.8,  // Definindo o traço mais fino
+            maxWidth: 0.8,  // Ajustando o traço máximo
+        });
+        const context = canvas.getContext('2d');
+
+        // Função para desenhar o texto no canvas
+        function drawText(fullName, birthDate, project) {
+            const text = `
+                Eu, ${fullName},  CPF ${project}, declaro que participei do programa de INTEGRAÇÃO da empresa 
+                OTC. DOC – ORGANIZAÇÃO TECNOLOGIA E CUSTODIA DE DOCUMENTOS LTDA, 
+                inscrita no CNPJ: 04.361.968/0001-02, com isso declaro:
+
+                A) Assisti o Vídeo de Integração contendo regras internas da empresa e que recebi o mesmo em PDF.
+
+                B) Assisti a palestra sobre o Tema de ASSEDIO MORAL e ASSEDIO SEXUAL.
+
+                C) Recebi Cartilha de Assédio Moral e Sexual em PDF.
+                
+                D) Recebi o Manual de Utilização de EPI em PDF, estando ciente que sou obrigado
+                a utilizar os EPI e que a não utilização é motivo de advertência.
+
+                Data da Assinatura: ${birthDate}
+
+
+
+                
+
+                ________________________________________________________________________________________________
+                Nome do Colaborador
+
+
+                ________________________________________________________________________________________________
+                OTC.DOC-ORGANIZAÇÃO TECNOLOGIA E CUSTODIA DE DOCUMENTOS LTDA
+
+
+
+            `;
+
+            context.clearRect(0, 0, canvas.width, canvas.height); // Limpa o canvas
+            context.font = '12px Arial';
+            context.fillStyle = 'black';
+            const lines = text.split('\n');
+            let y = 20;
+            for (let i = 0; i < lines.length; i++) {
+                context.fillText(lines[i], 10, y);
+                y += 18;
+            }
+        }
+
+        // Redimensiona o canvas
+        function resizeCanvas() {
+            const ratio = Math.max(window.devicePixelRatio || 1, 1);
+            canvas.width = canvas.offsetWidth * ratio;
+            canvas.height = canvas.offsetHeight * ratio;
+            context.scale(ratio, ratio);
+        }
+
+        // Redimensiona o canvas ao carregar
+        window.onresize = resizeCanvas;
+        resizeCanvas();
+
+        document.getElementById('clear').addEventListener('click', function() {
+            signaturePad.clear();
+        });
+
+        document.getElementById('update').addEventListener('click', function() {
+            // Coleta dados do formulário
+            const fullName = document.getElementById('fullName').value;
+            const birthDate = document.getElementById('birthDate').value;
+            const project = document.getElementById('project').value;
+
+            // Atualiza o texto no canvas com os dados do formulário
+            drawText(fullName, birthDate, project);
+        });
+
+        document.getElementById('submit').addEventListener('click', function() {
+            if (signaturePad.isEmpty()) {
+                alert('Por favor, assine o documento.');
+            } else {
+                // Captura a assinatura em formato base64
+                const signatureData = signaturePad.toDataURL(); 
+
+                // Coleta dados do formulário
+                const fullName = document.getElementById('fullName').value;
+                const birthDate = document.getElementById('birthDate').value;
+                const projeto = document.getElementById('projeto').value;
+                const project = document.getElementById('project').value;
+
+                // Envia por email
+                fetch('enviar-assinatura.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        assinatura: signatureData,
+                        email: 'sistemas@otcdoc.com.br',  // Email para enviar
+                        fullName: fullName,
+                        projeto: projeto,
+                        birthDate: birthDate,
+                        project: project
+                    })
+                }).then(response => {
+                    if (response.ok) {
+                        alert('Assinatura enviada com sucesso!');
+                    } else {
+                        alert('Erro ao enviar assinatura.');
+                    }
+                });
+            }
+        });
+    </script>
+
+</body>
+
+</html>
