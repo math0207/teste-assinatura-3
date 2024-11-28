@@ -254,6 +254,9 @@
         const signaturePad = new SignaturePad(canvas, {
             minWidth: 1,  // Definindo o traço mais fino
             maxWidth: 2,  // Ajustando o traço máximo
+            penColor: "black",
+            throttle: 0,
+            minDistance: 0,
         });
         const context = canvas.getContext('2d');
 
