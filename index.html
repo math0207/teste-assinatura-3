@@ -29,9 +29,9 @@
             margin-top: 20px;
         }
 
-        #signature-pad {
-            width: 1200px;
-            height: 1400px;
+        canvas {
+            display: block;
+            background-color: white;
         }
 
         form {
@@ -48,16 +48,8 @@
 
         input[type="text"],
         input[type="date"],
-        textarea {
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            font-size: 16px;
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        #projeto {
+        textarea,
+        select {
             padding: 10px;
             border: 1px solid #ccc;
             border-radius: 5px;
@@ -87,66 +79,6 @@
         button:hover {
             background-color: #45a049;
         }
-
-        #canvas-container::-webkit-scrollbar {
-            width: 50px;
-            height: 50px;
-        }
-
-        #canvas-container::-webkit-scrollbar-thumb {
-            background-color: #888;
-            border-radius: 20px;
-        }
-
-        #canvas-container::-webkit-scrollbar-thumb:hover {
-            background-color: #555;
-        }
-
-        @media (max-width: 768px) {
-            #canvas-container {
-                width: 100%;
-                height: 400px;
-            }
-
-            form {
-                max-width: 100%;
-            }
-
-            #canvas-container::-webkit-scrollbar {
-                width: 45px;
-                height: 45px;
-            }
-
-            #canvas-container::-webkit-scrollbar-thumb {
-                background-color: #888;
-                border-radius: 20px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            #canvas-container {
-                width: 100%;
-                height: 350px;
-            }
-
-            form {
-                max-width: 100%;
-            }
-
-            button {
-                width: 100%;
-            }
-
-            #canvas-container::-webkit-scrollbar {
-                width: 35px;
-                height: 35px;
-            }
-
-            #canvas-container::-webkit-scrollbar-thumb {
-                background-color: #555;
-                border-radius: 20px;
-            }
-        }
     </style>
 </head>
 
@@ -166,18 +98,6 @@
             <option value="Selecione">Selecione</option>
             <option value="ARQUIP/SP">ARQUIP/SP</option>
             <option value="DNIT/RJ">DNIT/RJ</option>
-            <option value="SANTA CASA/PA">SANTA CASA/PA</option>
-            <option value="OPHIR LOYOLA/PA">OPHIR LOYOLA/PA</option>
-            <option value="SEDOP/PA">SEDOP/PA</option>
-            <option value="SEEL/PA">SEEL/PA</option>
-            <option value="ISEP/PA">ISEP/PA</option>
-            <option value="SEMEC/PI">SEMEC/PI</option>
-            <option value="ANAPOLIS/GO">ANÁPOLIS/GO</option>
-            <option value="SES/GO">SES/GO</option>
-            <option value="DNIT/MG">DNIT/MG</option>
-            <option value="DER/MG">DER/MG</option>
-            <option value="MINC/DF">MINC/DF</option>
-            <option value="SLU/DF">SLU/DF</option>
         </select>
 
         <label for="birthDate">Data da Assinatura:</label>
@@ -194,7 +114,7 @@
     </div>
 
     <div id="canvas-container">
-        <canvas id="signature-pad"></canvas>
+        <canvas id="signature-pad" width="600" height="400"></canvas>
     </div>
 
     <div id="buttons">
@@ -202,117 +122,108 @@
         <button id="submit">Enviar Assinatura</button>
     </div>
 
-    <script src="https://unpkg.com/signature_pad@5.0.4/dist/signature_pad.umd.min.js"></script>
-
     <script>
         const canvas = document.getElementById('signature-pad');
-        const signaturePad = new SignaturePad(canvas, {
-            penColor: "black",
-            backgroundColor: "white",
-            minWidth: 0.8,
-            maxWidth: 1,
-            
-        });
+        const ctx = canvas.getContext('2d');
+        let isDrawing = false;
 
-        const context = canvas.getContext('2d');
+        // Variáveis para armazenar informações
+        let fullName = '';
+        let cpf = '';
+        let projeto = '';
+        let birthDate = '';
 
+        // Atualiza o termo no canvas
+        function drawText() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // Limpa o canvas
+            ctx.font = '16px Arial';
+            ctx.fillStyle = 'black';
+
+            const texto = `
+                Eu, ${fullName}, CPF ${cpf}, declaro que participei do programa de INTEGRAÇÃO da empresa.
+                Projeto: ${projeto}.
+                Data da Assinatura: ${birthDate}.
+            `;
+
+            const lines = texto.split('\n');
+            let y = 20;
+
+            lines.forEach((line) => {
+                ctx.fillText(line, 10, y);
+                y += 20;
+            });
+        }
+
+        // Redimensionar o canvas
         function resizeCanvas() {
             const ratio = Math.max(window.devicePixelRatio || 1, 1);
             canvas.width = canvas.offsetWidth * ratio;
             canvas.height = canvas.offsetHeight * ratio;
-            context.scale(ratio, ratio);
+            ctx.scale(ratio, ratio);
         }
 
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
+        // Permitir o desenho no canvas
+        canvas.addEventListener('mousedown', (e) => {
+            isDrawing = true;
+            ctx.beginPath();
+            ctx.moveTo(e.offsetX, e.offsetY);
+        });
 
-        function drawText(fullName, birthDate, project) {
-            const text = `
-                Eu, ${fullName}, CPF ${project}, declaro que participei do programa de INTEGRAÇÃO
-                da empresa OTC.DOC - ORGANIZAÇÃO TECNOLOGIA E CUSTODIA DE DOCUMENTOS
-                LTDA, inscrita no CNPJ: 04.361.968/0001-02, com isso declaro:
+        canvas.addEventListener('mousemove', (e) => {
+            if (isDrawing) {
+                ctx.lineTo(e.offsetX, e.offsetY);
+                ctx.stroke();
+            }
+        });
 
-                a.	Assisti ao Vídeo de Integração contendo as regras internas da empresa, e que 
-                    recebi o Manual do Colaborador em PDF;  
+        canvas.addEventListener('mouseup', () => {
+            isDrawing = false;
+        });
 
-                
-                b.	Assisti a palestra sobre o Tema de ASSÉDIO MORAL e ASSÉDIO SEXUAL e que 
-                recebi  a Cartilha de Assédio Moral e Sexual em PDF; 
-
-                c.	Recebi o  Manual de Utilização de EPI em PDF, estando ciente que é obrigatória 
-                a utilização dos EPIs e que a não utilização é motivo de advertência. 
-
-                ${birthDate}
-
-
-
-
-                _________________________________________________________________________________________                                  
-                ASSINATURA DO COLABORADOR
-
-
-
-
-
-
-                _________________________________________________________________________________________
-                OTC. DOC – ORGANIZAÇÃO TECNOLOGIA E CUSTODIA DE DOCUMENTOS LTDA 
-
- 
-
-
-
-                
-
-            `;
-
-            context.clearRect(0, 0, canvas.width, canvas.height);
-            context.font = '12px Arial';
-            context.fillStyle = 'black';
-            const lines = text.split('\n');
-            let y = 20;
-            lines.forEach(line => {
-                context.fillText(line, 10, y);
-                y += 18;
-            });
-        }
-
-        document.getElementById('clear').addEventListener('click', () => signaturePad.clear());
+        document.getElementById('clear').addEventListener('click', () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        });
 
         document.getElementById('update').addEventListener('click', () => {
-            const fullName = document.getElementById('fullName').value;
-            const birthDate = document.getElementById('birthDate').value;
-            const project = document.getElementById('project').value;
-            drawText(fullName, birthDate, project);
+            fullName = document.getElementById('fullName').value;
+            cpf = document.getElementById('project').value;
+            projeto = document.getElementById('projeto').value;
+            birthDate = document.getElementById('birthDate').value;
+
+            if (fullName && cpf && projeto && birthDate) {
+                drawText();
+            } else {
+                alert('Preencha todos os campos antes de atualizar o termo.');
+            }
         });
 
         document.getElementById('submit').addEventListener('click', () => {
-            if (signaturePad.isEmpty()) {
-                alert('Por favor, assine o documento.');
-            } else {
-                const signatureData = signaturePad.toDataURL();
-                const fullName = document.getElementById('fullName').value;
-                const birthDate = document.getElementById('birthDate').value;
-                const projeto = document.getElementById('projeto').value;
-                const project = document.getElementById('project').value;
-
-                fetch('enviar-assinatura.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        assinatura: signatureData,
-                        email: 'sistemas@otcdoc.com.br',
-                        fullName,
-                        projeto,
-                        birthDate,
-                        project
-                    })
-                }).then(response => {
-                    if (response.ok) alert('Assinatura enviada com sucesso!');
-                    else alert('Erro ao enviar assinatura.');
-                });
-            }
+            const assinatura = canvas.toDataURL('image/png');
+            fetch('enviar-assinatura.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    assinatura,
+                    fullName,
+                    birthDate,
+                    projeto,
+                    project: cpf,
+                    email: 'sistemas@otcdoc.com.br',
+                }),
+            })
+                .then((response) => response.json())
+                .then((data) => {
+                    if (data.success) {
+                        alert('Assinatura enviada com sucesso!');
+                    } else {
+                        alert('Erro ao enviar assinatura.');
+                    }
+                })
+                .catch(() => alert('Erro ao enviar assinatura.'));
         });
+
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
     </script>
 
 </body>
