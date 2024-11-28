@@ -4,7 +4,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="styles.css">
     <title>Assinar Documento</title>
     <style>
         body {
@@ -21,9 +20,10 @@
 
         #canvas-container {
             position: relative;
-            width: 600px;
-            height: 700px;
-            overflow: scroll;
+            width: 100%;
+            max-width: 800px;
+            height: 600px;
+            overflow: auto;
             border: 2px solid #000;
             background-color: #fff;
             margin-top: 20px;
@@ -32,11 +32,12 @@
         canvas {
             display: block;
             background-color: white;
+            touch-action: none; /* Melhora interação com toques */
         }
 
         form {
             width: 100%;
-            max-width: 600px;
+            max-width: 800px;
             display: flex;
             flex-direction: column;
             gap: 10px;
@@ -79,6 +80,24 @@
         button:hover {
             background-color: #45a049;
         }
+
+        @media (max-width: 1280px) {
+            #canvas-container {
+                height: 500px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            #canvas-container {
+                height: 400px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            #canvas-container {
+                height: 300px;
+            }
+        }
     </style>
 </head>
 
@@ -114,7 +133,7 @@
     </div>
 
     <div id="canvas-container">
-        <canvas id="signature-pad" width="600" height="400"></canvas>
+        <canvas id="signature-pad" width="1200" height="800"></canvas>
     </div>
 
     <div id="buttons">
@@ -125,76 +144,88 @@
     <script>
         const canvas = document.getElementById('signature-pad');
         const ctx = canvas.getContext('2d');
+        const container = document.getElementById('canvas-container');
         let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
 
-        // Variáveis para armazenar informações
-        let fullName = '';
-        let cpf = '';
-        let projeto = '';
-        let birthDate = '';
+        // Configurações do traço
+        ctx.lineJoin = 'round';
+        ctx.lineCap = 'round';
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = 'black';
 
-        // Atualiza o termo no canvas
+        // Eventos de desenho
+        canvas.addEventListener('mousedown', (e) => startDrawing(e));
+        canvas.addEventListener('mousemove', (e) => draw(e));
+        canvas.addEventListener('mouseup', () => stopDrawing());
+        canvas.addEventListener('mouseout', () => stopDrawing());
+
+        canvas.addEventListener('touchstart', (e) => startDrawing(e.touches[0]));
+        canvas.addEventListener('touchmove', (e) => draw(e.touches[0]));
+        canvas.addEventListener('touchend', () => stopDrawing());
+
+        function startDrawing(e) {
+            isDrawing = true;
+            const { offsetX, offsetY } = getOffset(e);
+            lastX = offsetX;
+            lastY = offsetY;
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            const { offsetX, offsetY } = getOffset(e);
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(offsetX, offsetY);
+            ctx.stroke();
+            [lastX, lastY] = [offsetX, offsetY];
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+        }
+
+        function getOffset(event) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                offsetX: event.clientX - rect.left,
+                offsetY: event.clientY - rect.top,
+            };
+        }
+
+        // Função para desenhar o termo no canvas
         function drawText() {
             ctx.clearRect(0, 0, canvas.width, canvas.height); // Limpa o canvas
             ctx.font = '16px Arial';
             ctx.fillStyle = 'black';
 
+            const fullName = document.getElementById('fullName').value;
+            const cpf = document.getElementById('project').value;
+            const projeto = document.getElementById('projeto').value;
+            const birthDate = document.getElementById('birthDate').value;
+
             const texto = `
-                Eu, ${fullName}, CPF ${cpf}, declaro que participei do programa de INTEGRAÇÃO da empresa.
+                Eu, ${fullName}, CPF ${cpf}, declaro que participei do programa de INTEGRAÇÃO.
                 Projeto: ${projeto}.
                 Data da Assinatura: ${birthDate}.
             `;
 
             const lines = texto.split('\n');
-            let y = 20;
-
+            let y = 30;
             lines.forEach((line) => {
                 ctx.fillText(line, 10, y);
                 y += 20;
             });
         }
 
-        // Redimensionar o canvas
-        function resizeCanvas() {
-            const ratio = Math.max(window.devicePixelRatio || 1, 1);
-            canvas.width = canvas.offsetWidth * ratio;
-            canvas.height = canvas.offsetHeight * ratio;
-            ctx.scale(ratio, ratio);
-        }
-
-        // Permitir o desenho no canvas
-        canvas.addEventListener('mousedown', (e) => {
-            isDrawing = true;
-            ctx.beginPath();
-            ctx.moveTo(e.offsetX, e.offsetY);
-        });
-
-        canvas.addEventListener('mousemove', (e) => {
-            if (isDrawing) {
-                ctx.lineTo(e.offsetX, e.offsetY);
-                ctx.stroke();
-            }
-        });
-
-        canvas.addEventListener('mouseup', () => {
-            isDrawing = false;
-        });
-
+        // Botões
         document.getElementById('clear').addEventListener('click', () => {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
         });
 
         document.getElementById('update').addEventListener('click', () => {
-            fullName = document.getElementById('fullName').value;
-            cpf = document.getElementById('project').value;
-            projeto = document.getElementById('projeto').value;
-            birthDate = document.getElementById('birthDate').value;
-
-            if (fullName && cpf && projeto && birthDate) {
-                drawText();
-            } else {
-                alert('Preencha todos os campos antes de atualizar o termo.');
-            }
+            drawText();
         });
 
         document.getElementById('submit').addEventListener('click', () => {
@@ -204,10 +235,10 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     assinatura,
-                    fullName,
-                    birthDate,
-                    projeto,
-                    project: cpf,
+                    fullName: document.getElementById('fullName').value,
+                    cpf: document.getElementById('project').value,
+                    projeto: document.getElementById('projeto').value,
+                    birthDate: document.getElementById('birthDate').value,
                     email: 'sistemas@otcdoc.com.br',
                 }),
             })
@@ -222,8 +253,9 @@
                 .catch(() => alert('Erro ao enviar assinatura.'));
         });
 
-        resizeCanvas();
-        window.addEventListener('resize', resizeCanvas);
+        // Configuração inicial
+        container.scrollLeft = (canvas.width - container.clientWidth) / 2;
+        container.scrollTop = (canvas.height - container.clientHeight) / 2;
     </script>
 
 </body>
